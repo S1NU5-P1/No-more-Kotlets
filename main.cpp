@@ -22,7 +22,6 @@ int main()
 	auto resY = 720;
 
 	bool frame_lock = true;
-	
 
 	srand(time(NULL));
 
@@ -65,21 +64,20 @@ void game(RenderWindow& window, View& view)
 	//missiles
 	vector <laser_object> allied_missiles;
 	Clock Time_between_fire;
-
 	vector <laser_object> enemy_missiles;
 	//
 
 	//enemies
-	vector <fighter_enemy> fighters;
+	vector <enemy_object *> enemies;
 
 	for (size_t i = 0; i < 15; i++)
 	{
-		fighters.push_back(fighter_enemy());
+		enemies.push_back(new fighter_enemy());
 		Vector2f position;
 		position.x = 45 + 80 * (i % 5);
 		position.y = 30 + 80 * ceil(i / 5);
-		fighters[i].setPosition(position);
-		fighters[i].setScale(5);
+		enemies[i]->setPosition(position);
+		enemies[i]->setScale(5);
 	}
 	//
 
@@ -130,12 +128,12 @@ void game(RenderWindow& window, View& view)
 
 		keyBindings(event, player, allied_missiles, deltaTime, Time_between_fire);
 
-		//Colliding
+		////Colliding
 		
-		//Coliding ememy - missilies
-		for (int i = 0; i < fighters.size(); i++)
+		//Coliding ememy - allied missilies
+		for (int i = 0; i < enemies.size(); i++)
 		{
-			Vertex_Object* obj1 = &fighters[i];
+			Vertex_Object* obj1 = enemies[i];
 			for (int j = 0; j < allied_missiles.size(); j++)
 			{
 				Vertex_Object* obj2 = &allied_missiles[j];
@@ -144,20 +142,97 @@ void game(RenderWindow& window, View& view)
 					swap(allied_missiles[j], allied_missiles[allied_missiles.size() - 1]);
 					allied_missiles.pop_back();
 
-					swap(fighters[i], fighters[fighters.size() - 1]);
-					fighters.pop_back();
+					enemies[i]->getDamage(10, Color::Red);
+					if (enemies[i]->health < 0)
+					{
+						swap(enemies[i], enemies[enemies.size() - 1]);
+						enemies.pop_back();
+					}
+
+					
 				}
 
 			}
 		}
-		
+		//
 
-		
-		//}
+		//Coliding player - enemy missilies
+		for (int i = 0; i < enemy_missiles.size(); i++)
+		{
+			Vertex_Object* obj2 = &enemy_missiles[i];
+			if (checkCollision(&player, obj2))
+			{
+				swap(enemy_missiles[i], enemy_missiles[enemy_missiles.size() - 1]);
+				enemy_missiles.pop_back();
+
+				player.getDamage(10, Color::Red);
+				if (player.health < 0)
+				{
+					cout << "GAME OVER" << endl;
+					//GameOver = true;
+				}
+			}
+
+		}
+		//
+
+		//Coliding player - enemy
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			Vertex_Object* obj2 = enemies[i];
+			if (checkCollision(&player, obj2))
+			{
+				swap(enemies[i], enemies[enemies.size() - 1]);
+				enemies.pop_back();
+
+				player.getDamage(50, Color::Red);
+				if (player.health < 0)
+				{
+					cout << "GAME OVER" << endl;
+					//GameOver = true;
+				}
+			}
+
+		}
+		//
+
+		////
+
+		//Destroing enemies out of view;
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			if (enemies[i]->getLeft_down_corner().y > view.getSize().y)
+			{
+				swap(enemies[i], enemies[enemies.size() - 1]);
+				enemies.pop_back();
+			}
+		}
+		//
+
+
+		//Destroing missiles out of view
+		for (int i = 0; i < allied_missiles.size(); i++)
+		{
+			allied_missiles[i].move(deltaTime);
+			if (allied_missiles[i].getPosition().y < -100 || allied_missiles[i].getPosition().y >(view.getSize().y + 100))
+			{
+				swap(allied_missiles[i], allied_missiles[allied_missiles.size() - 1]);
+				allied_missiles.pop_back();
+			}
+		}
+
+		for (int i = 0; i < enemy_missiles.size(); i++)
+		{
+			enemy_missiles[i].move(deltaTime);
+			if (enemy_missiles[i].getPosition().y < -100 || enemy_missiles[i].getPosition().y >(view.getSize().y + 100))
+			{
+				swap(enemy_missiles[i], enemy_missiles[enemy_missiles.size() - 1]);
+				enemy_missiles.pop_back();
+			}
+		}
+		//
 
 		//Is the player outside the window 
-
-
 		if(player.getPosition().x > view.getSize().x + player.getLeft_down_corner().x)
 		{
 			player.setPosition(Vector2f(0 - player.getLeft_down_corner().x, player.getPosition().y));
@@ -175,18 +250,33 @@ void game(RenderWindow& window, View& view)
 		{
 			player.setPosition(Vector2f(player.getPosition().x, view.getSize().y + player.getLeft_down_corner().y));
 		}
-	
 
-		//cout << player.getLeft_down_corner().x << " , " << player.getLeft_down_corner().y << endl;
+		//Moving objects and AI
+		
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			enemies[i]->AI(deltaTime, enemy_missiles);
+		}
+
+		//player
+		player.move(deltaTime);
+		player.back2color(deltaTime);
 		//
 
+		//Lasers:
+		for (int i = 0; i < allied_missiles.size(); i++)
+			allied_missiles[i].move(deltaTime);
+		for (int i = 0; i < enemy_missiles.size(); i++)
+			enemy_missiles[i].move(deltaTime);
+		//
 		
 
-		player.move(deltaTime);
-
-		Text fps("PH", openSans);
+		//
+		
 
 		//fps metter
+		
+		Text fps("PH", openSans);
 		if (fps_bool)
 		{
 			//FPS count and convert
@@ -216,30 +306,20 @@ void game(RenderWindow& window, View& view)
 		background.draw(window);
 		//
 
-		//Destroing missiles out of view
-		for (int i = 0; i < allied_missiles.size(); i++)
-		{
-			allied_missiles[i].move(deltaTime);
-			if (allied_missiles[i].getPosition().y < -100 || allied_missiles[i].getPosition().y >(view.getSize().y + 100))
-			{
-				swap(allied_missiles[i], allied_missiles[allied_missiles.size() - 1]);
-				allied_missiles.pop_back();
-			}
-		}
-		//
-
 		//Drawing Objects
 
 		player.draw(window);
 
-		for (int i = 0; i < fighters.size(); i++) //Drawig enemy; Type -  Fighters
-			fighters[i].draw(window);
+		for (int i = 0; i < enemies.size(); i++) //Drawig enemy; Type -  enemies
+			enemies[i]->draw(window);
 
 		for (int i = 0; i < allied_missiles.size(); i++)	//Drawing allied_missiles
 			allied_missiles[i].draw(window);
-		
-		
 
+		for (int i = 0; i < enemy_missiles.size(); i++)	//Drawing enemy_misi
+			enemy_missiles[i].draw(window);
+
+		
 		//Drawing debug objects (like colisions, or checking circles)
 
 		if (debugMode)
@@ -247,15 +327,12 @@ void game(RenderWindow& window, View& view)
 			window.draw(fps);
 			player.drawDebug(window);
 			
-			for (int i = 0; i < fighters.size(); i++) //Drawig enemy; Type -  Fighters
-				fighters[i].drawDebug(window);
+			for (int i = 0; i < enemies.size(); i++) //Drawig enemy; Type -  enemies
+				enemies[i]->drawDebug(window);
 
 			for (int i = 0; i < allied_missiles.size(); i++)
 				allied_missiles[i].drawDebug(window);
 		}
-
-
-		
 
 		window.display();
 
@@ -294,7 +371,7 @@ void keyBindings(Event& event, player_object& player, vector <laser_object>& mis
 		if (time_between_fire.getElapsedTime().asMilliseconds() > 200)
 		{
 			time_between_fire.restart();
-			missiles.push_back(laser_object(10, 35, Color::Red, 300, -1));
+			missiles.push_back(laser_object(10, 35, Color::Red, 50, -1));
 			//missiles.push_back(laser_object(10, 35, Color::Red, 50, -1));
 			int i = missiles.size() - 1;
 			Vector2f temp_fire_point = player.getFirePoint();

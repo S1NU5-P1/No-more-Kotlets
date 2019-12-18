@@ -98,6 +98,7 @@ Vertex_Object::Vertex_Object()
 	collision[0].color = Color::Red;
 	
 	def_color = Color::White;
+	act_color = def_color;
 }
 
 Vertex_Object::Vertex_Object(vector <Vector2f> obj, vector <Vector2f> col, Color color)
@@ -114,6 +115,7 @@ Vertex_Object::Vertex_Object(vector <Vector2f> obj, vector <Vector2f> col, Color
 	collision.resize(collision_template.size());
 
 	def_color = color;
+	act_color = def_color;
 
 	vertexUpdate();
 
@@ -146,6 +148,7 @@ void Vertex_Object::setScale(float k)
 
 void Vertex_Object::setColor(Color color)
 {
+	act_color = color;
 	for (int i = 0; i < object.getVertexCount(); i++)
 	{
 		object[i].color = color;
@@ -334,6 +337,20 @@ void player_object::setScale(float k)
 	update();
 }
 
+void player_object::getDamage(int damage, Color color)
+{
+	health -= damage;
+	setColor(color);
+	color_time = 0;
+}
+
+void player_object::back2color(Time deltaTime)
+{
+	color_time += deltaTime.asMilliseconds();
+	if (color_time > 250 && act_color != def_color)
+		setColor(Vertex_Object::def_color);
+}
+
 Vector2f player_object::getFirePoint()
 {
 	which_fire_point++;
@@ -406,9 +423,9 @@ inline enemy_object::enemy_object()
 {
 	health = 10;
 	strength = 10;
-	acceleration = 10;
-	deceleration = 10;
-	target_speed = 10;
+	acceleration = Vector2f(10, 10);
+	deceleration = Vector2f(10, 10);
+	target_speed = Vector2f(10, 10);
 	speed = Vector2f(0, 0);
 	isColliding = false;
 
@@ -416,10 +433,14 @@ inline enemy_object::enemy_object()
 	fire_points = fire_points_template;
 	which_fire_point = 0;
 
+	double AI_time = 0;
+	Vector2f deltaPosition = Vector2f(0, 0);
+	Vector2f direction = Vector2f(1, 1);
+
 	update();
 }
 
-enemy_object::enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color color, int hp, int str, float aacceleration, float adeceleration, float vmax)
+enemy_object::enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color color, int hp, int str, Vector2f aacceleration, Vector2f adeceleration, Vector2f vmax)
 	:Vertex_Object(obj, col, color)
 {
 	health = hp;
@@ -435,20 +456,23 @@ enemy_object::enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color c
 	fire_points = fire_points_template;
 	which_fire_point = 0;
 
+	double AI_time = 0;
+	Vector2f deltaPosition = Vector2f(0, 0);
+	Vector2f direction = Vector2f(1,1);
 	update();
 }
 
 void enemy_object::accelerate(Vector2f direction, Time deltaTime)
 {
 
-	if (fabs(speed.x) < target_speed || !((direction.x * speed.x) > 0))
+	if (fabs(speed.x) < target_speed.x || !((direction.x * speed.x) > 0))
 	{
-		speed.x += direction.x * acceleration * deltaTime.asMilliseconds() / 100;
+		speed.x += direction.x * acceleration.x * deltaTime.asMilliseconds() / 100;
 	}
 
-	if (fabs(speed.y) < target_speed || !((direction.y * speed.y) > 0))
+	if (fabs(speed.y) < target_speed.y || !((direction.y * speed.y) > 0))
 	{
-		speed.y += direction.y * acceleration * deltaTime.asMilliseconds() / 100;
+		speed.y += direction.y * acceleration.x * deltaTime.asMilliseconds() / 100;
 	}
 	//cout << "fabs(speed.y) < target_speed / 1,41: " << (fabs(speed.y) < (target_speed / 1, 41)) << " fabs(speed.y) = " << fabs(speed.y) << " !(direction.y * speed.y): " << !((direction.y * speed.y) > 0 ) << endl;
 	force_vector = direction;
@@ -465,10 +489,10 @@ void enemy_object::move(Time deltaTime)
 	if (speed.x != 0 && force_vector.x == 0)
 	{
 		if (speed.x > 0 && force_vector.x != 1)
-			speed.x -= deceleration * deltaTime.asMilliseconds() / 100;
+			speed.x -= deceleration.x * deltaTime.asMilliseconds() / 100;
 		else if (speed.x < 0 && force_vector.x != -1)
-			speed.x += deceleration * deltaTime.asMilliseconds() / 100;
-		if (abs(speed.x) < (deceleration * deltaTime.asMilliseconds() / 100))
+			speed.x += deceleration.x * deltaTime.asMilliseconds() / 100;
+		if (abs(speed.x) < (deceleration.x * deltaTime.asMilliseconds() / 100))
 			speed.x /= 2;
 		else if (abs(speed.x) < 2)
 			speed.x = 0;
@@ -477,10 +501,10 @@ void enemy_object::move(Time deltaTime)
 	if (speed.y != 0 && force_vector.y == 0)
 	{
 		if (speed.y > 0 && force_vector.y != 1)
-			speed.y -= deceleration * deltaTime.asMilliseconds() / 100;
+			speed.y -= deceleration.y * deltaTime.asMilliseconds() / 100;
 		else if (speed.y < 0 && force_vector.y != -1)
-			speed.y += deceleration * deltaTime.asMilliseconds() / 100;
-		if (abs(speed.y) < (deceleration * deltaTime.asMilliseconds() / 100))
+			speed.y += deceleration.y * deltaTime.asMilliseconds() / 100;
+		if (abs(speed.y) < (deceleration.y * deltaTime.asMilliseconds() / 100))
 			speed.y /= 2;
 		else if (abs(speed.y) < 1)
 			speed.y = 0;
@@ -489,6 +513,10 @@ void enemy_object::move(Time deltaTime)
 	Vector2f temp;
 	temp.x = speed.x * deltaTime.asMilliseconds() / 100;
 	temp.y = speed.y * deltaTime.asMilliseconds() / 100;
+
+	deltaPosition.x += temp.x;
+	deltaPosition.y += temp.y;
+
 	Vertex_Object::move(temp);
 
 	update();
@@ -525,17 +553,47 @@ void enemy_object::getDamage(int damage, Color color)
 
 void enemy_object::back2color()
 {
-	if (color_time > 1)
+	if (color_time > 250 && act_color != def_color)
 		setColor(Vertex_Object::def_color);
 }
 
 fighter_enemy::fighter_enemy()
-	:enemy_object(fighter_template, fighter_Collision_template, Color(180,150,150,255), 20, 10, 10, 10, 20)
+	:enemy_object(fighter_template, fighter_Collision_template, Color(180,150,150,255), 20, 10, Vector2f(10,0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
 {
-
+	fire_points_template = fighter_fire_points;
+	fire_points = fighter_fire_points;
 }
 
-void fighter_enemy::AI()
+void fighter_enemy::AI(Time deltaTime)
 {
-	cout << "Work in progress" << endl;
+	AI_time += deltaTime.asMilliseconds();
+	color_time += deltaTime.asMilliseconds();
+
+	accelerate(direction, deltaTime);
+	//cout << speed.x << " , " << speed.y << "  |  " << deltaTime.asMilliseconds() <<endl;
+	if (deltaPosition.x > 30) direction.x = -1; 
+	else if (deltaPosition.x < -30) direction.x = 1;
+	//cout << deltaPosition.x << " , " << deltaPosition.y << "  |  " << deltaTime.asMilliseconds() << endl;
+	
+	back2color();
+
+	move(deltaTime);
+}
+
+void fighter_enemy::AI(Time deltaTime, vector<laser_object> &enemy_missiles)
+{
+	AI(deltaTime);
+	shoot(deltaTime, enemy_missiles, 5000);
+}
+
+void fighter_enemy::shoot(Time deltaTime, vector<laser_object> &enemy_missiles, int x)
+{
+	if ( (rand() % x) + 1 == 1 && deltaTime.asMilliseconds() != 0 && AI_time > 500)
+	{
+		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, 1));
+		int i = enemy_missiles.size() - 1;
+		Vector2f temp_fire_point = getFirePoint();
+		enemy_missiles[i].setPosition(Vector2f(temp_fire_point.x, temp_fire_point.y));
+		AI_time = 0;
+	}
 }

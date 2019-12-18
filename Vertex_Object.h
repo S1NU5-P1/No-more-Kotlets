@@ -21,6 +21,7 @@ protected:
 	float radious;
 	float collision_radious;
 	Color def_color;
+	Color act_color;
 
 	void findCenter();
 	void findRadious();
@@ -65,6 +66,8 @@ class player_object
 	vector <Vector2f> fire_points;
 	int which_fire_point;
 
+	float color_time;
+
 	void update();
 
 public:
@@ -81,6 +84,9 @@ public:
 	void move(Time deltaTime);
 	void setPosition(Vector2f position_vector);
 	void setScale(float k);
+
+	void getDamage(int damage, Color color);
+	void back2color(Time deltaTime);
 
 	Vector2f getFirePoint();
 };
@@ -106,10 +112,12 @@ public:
 class enemy_object
 	:public Vertex_Object
 {
+
+protected:
 	Vector2f speed;
-	float acceleration;
-	float deceleration;
-	float target_speed;
+	Vector2f acceleration;
+	Vector2f deceleration;
+	Vector2f target_speed;
 
 	Vector2f force_vector;
 
@@ -120,6 +128,10 @@ class enemy_object
 	float color_time;
 
 	void update();
+
+	double AI_time;
+	Vector2f deltaPosition;
+	Vector2f direction = Vector2f(1,1);
 	
 public:
 	int health;
@@ -129,7 +141,7 @@ public:
 	bool isColliding;
 
 	enemy_object();
-	enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color color, int hp, int str, float aacceleration, float adeceleration, float vmax);
+	enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color color, int hp, int str, Vector2f aacceleration, Vector2f adeceleration, Vector2f vmax);
 	
 	void accelerate(Vector2f direction, Time deltaTime);
 	void move(Time deltaTime);
@@ -140,7 +152,10 @@ public:
 
 	void getDamage(int damage, Color color);
 
-	virtual void AI() = 0;
+	virtual void AI(Time deltaTime) = 0;
+	virtual void AI(Time deltaTime, vector <laser_object> &enemy_missiles) = 0;
+
+	virtual void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x) = 0; //x is a denominator of probability (1/x); 
 
 	void back2color();
 
@@ -149,8 +164,11 @@ public:
 class fighter_enemy
 	:public enemy_object
 {
+	
 public:
 	fighter_enemy();
-	void AI();
-
+	void AI(Time deltaTime);
+	void AI(Time deltaTime, vector <laser_object> &enemy_missiles);
+	
+	void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x);
 };

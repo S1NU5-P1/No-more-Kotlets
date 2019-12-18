@@ -91,3 +91,8 @@ vector <Vector2f> fighter_Collision_template
 	Vector2f(1,8),
 	Vector2f(0,8)
 };
+
+vector <Vector2f> fighter_fire_points
+{
+	Vector2f(5,6)
+};
