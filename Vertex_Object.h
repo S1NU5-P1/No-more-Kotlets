@@ -1,5 +1,10 @@
 #include <SFML\Graphics.hpp>
 
+
+
+#ifndef Vertex_Object_h
+#define Vertex_Object_h
+
 using namespace std;
 using namespace sf;
 
@@ -130,6 +135,8 @@ protected:
 	void update();
 
 	double AI_time;
+	double shoot_time;
+
 	Vector2f deltaPosition;
 	Vector2f direction = Vector2f(1,1);
 	
@@ -152,12 +159,16 @@ public:
 
 	void getDamage(int damage, Color color);
 
-	virtual void AI(Time deltaTime) = 0;
-	virtual void AI(Time deltaTime, vector <laser_object> &enemy_missiles) = 0;
+	void time_update(Time deltaTime);
 
-	virtual void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x) = 0; //x is a denominator of probability (1/x); 
+	void simpleMovement(Time deltaTime);
+
+	void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x); //x is a denominator of probability (1/x); 
+	void aimed_shoot(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position, int x);
 
 	void back2color();
+
+	virtual void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position) = 0;
 
 };
 
@@ -167,8 +178,18 @@ class fighter_enemy
 	
 public:
 	fighter_enemy();
-	void AI(Time deltaTime);
-	void AI(Time deltaTime, vector <laser_object> &enemy_missiles);
-	
-	void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x);
+
+	void AI(Time deltaTime, vector <laser_object> &enemy_missiles, Vector2f player_position);
 };
+
+class special_fighter_enemy
+	:public enemy_object
+{
+
+public:
+	special_fighter_enemy();
+
+	void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position);
+};
+
+#endif

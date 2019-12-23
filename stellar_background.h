@@ -1,8 +1,10 @@
 #include <SFML\Graphics.hpp>
 
+#ifndef stellar_background_h
+#define stellar_background_h
+
 using namespace std;
 using namespace sf;
-
 
 class stellar_background
 {
@@ -36,3 +38,4 @@ public:
 	
 };
 
+#endif

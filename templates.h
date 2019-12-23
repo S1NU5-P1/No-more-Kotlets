@@ -1,5 +1,9 @@
 #include <SFML\Graphics.hpp>
 
+
+#ifndef templates_h
+#define templates_h
+
 using namespace std;
 using namespace sf;
 
@@ -96,3 +100,5 @@ vector <Vector2f> fighter_fire_points
 {
 	Vector2f(5,6)
 };
+
+#endif

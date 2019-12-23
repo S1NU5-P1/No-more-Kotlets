@@ -433,9 +433,12 @@ inline enemy_object::enemy_object()
 	fire_points = fire_points_template;
 	which_fire_point = 0;
 
-	double AI_time = 0;
-	Vector2f deltaPosition = Vector2f(0, 0);
-	Vector2f direction = Vector2f(1, 1);
+	AI_time = 0;
+	shoot_time = 0;
+	color_time = 0;
+
+	deltaPosition = Vector2f(0, 0);
+	direction = Vector2f(1, 1);
 
 	update();
 }
@@ -456,9 +459,12 @@ enemy_object::enemy_object(vector <Vector2f> obj, vector <Vector2f> col, Color c
 	fire_points = fire_points_template;
 	which_fire_point = 0;
 
-	double AI_time = 0;
-	Vector2f deltaPosition = Vector2f(0, 0);
-	Vector2f direction = Vector2f(1,1);
+	AI_time = 0;
+	shoot_time = 0;
+	color_time = 0;
+
+	deltaPosition = Vector2f(0, 0);
+	direction = Vector2f(1,1);
 	update();
 }
 
@@ -551,6 +557,49 @@ void enemy_object::getDamage(int damage, Color color)
 	color_time = 0;
 }
 
+void enemy_object::time_update(Time deltaTime)
+{
+	AI_time += deltaTime.asMilliseconds();
+	shoot_time += deltaTime.asMilliseconds();
+	color_time += deltaTime.asMilliseconds();
+}
+
+void enemy_object::simpleMovement(Time deltaTime)
+{
+	accelerate(direction, deltaTime);
+	//cout << speed.x << " , " << speed.y << "  |  " << deltaTime.asMilliseconds() <<endl;
+	if (deltaPosition.x > 30) direction.x = -1;
+	else if (deltaPosition.x < -30) direction.x = 1;
+	//cout << deltaPosition.x << " , " << deltaPosition.y << "  |  " << deltaTime.asMilliseconds() << endl;
+
+	back2color();
+
+	move(deltaTime);
+}
+
+void enemy_object::shoot(Time deltaTime, vector<laser_object>& enemy_missiles, int x)
+{
+	if ((rand() % x) + 1 == 1 && deltaTime.asMilliseconds() != 0 && shoot_time > 500)
+	{
+		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, 1));
+		Vector2f temp_fire_point = getFirePoint();
+		enemy_missiles[enemy_missiles.size() - 1].setPosition(Vector2f(temp_fire_point.x, temp_fire_point.y));
+		shoot_time = 0;
+	}
+}
+
+void enemy_object::aimed_shoot(Time deltaTime, vector<laser_object>& enemy_missiles, Vector2f player_position, int x)
+{
+	if ((rand() % x) + 1 == 1 && deltaTime.asMilliseconds() != 0 && shoot_time > 500)
+	{
+		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, 1));
+		Vector2f temp_fire_point = getFirePoint();
+		enemy_missiles[enemy_missiles.size() - 1].setPosition(Vector2f(temp_fire_point.x, temp_fire_point.y));
+		shoot_time = 0;
+
+	}
+}
+
 void enemy_object::back2color()
 {
 	if (color_time > 250 && act_color != def_color)
@@ -564,36 +613,24 @@ fighter_enemy::fighter_enemy()
 	fire_points = fighter_fire_points;
 }
 
-void fighter_enemy::AI(Time deltaTime)
+
+void fighter_enemy::AI(Time deltaTime, vector<laser_object> &enemy_missiles, Vector2f player_position)
 {
-	AI_time += deltaTime.asMilliseconds();
-	color_time += deltaTime.asMilliseconds();
-
-	accelerate(direction, deltaTime);
-	//cout << speed.x << " , " << speed.y << "  |  " << deltaTime.asMilliseconds() <<endl;
-	if (deltaPosition.x > 30) direction.x = -1; 
-	else if (deltaPosition.x < -30) direction.x = 1;
-	//cout << deltaPosition.x << " , " << deltaPosition.y << "  |  " << deltaTime.asMilliseconds() << endl;
-	
-	back2color();
-
-	move(deltaTime);
-}
-
-void fighter_enemy::AI(Time deltaTime, vector<laser_object> &enemy_missiles)
-{
-	AI(deltaTime);
+	time_update(deltaTime);
+	simpleMovement(deltaTime);
 	shoot(deltaTime, enemy_missiles, 5000);
 }
 
-void fighter_enemy::shoot(Time deltaTime, vector<laser_object> &enemy_missiles, int x)
+special_fighter_enemy::special_fighter_enemy()
+	:enemy_object(fighter_template, fighter_Collision_template, Color(180, 150, 150, 255), 20, 10, Vector2f(10, 0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
 {
-	if ( (rand() % x) + 1 == 1 && deltaTime.asMilliseconds() != 0 && AI_time > 500)
-	{
-		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, 1));
-		int i = enemy_missiles.size() - 1;
-		Vector2f temp_fire_point = getFirePoint();
-		enemy_missiles[i].setPosition(Vector2f(temp_fire_point.x, temp_fire_point.y));
-		AI_time = 0;
-	}
+	fire_points_template = fighter_fire_points;
+	fire_points = fighter_fire_points;
+}
+
+void special_fighter_enemy::AI(Time deltaTime, vector<laser_object>& enemy_missiles, Vector2f player_position)
+{
+	time_update(deltaTime);
+	simpleMovement(deltaTime);
+	aimed_shoot(deltaTime, enemy_missiles, player_position, 1000);
 }

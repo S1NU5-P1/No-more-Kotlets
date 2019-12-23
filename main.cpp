@@ -1,9 +1,10 @@
-﻿#include <SFML\Graphics.hpp>
+#include <SFML\Graphics.hpp>
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include "stellar_background.h"
 #include "Vertex_Object.h"
+#include "physics.h"
 
 
 using namespace std;
@@ -13,9 +14,8 @@ View getLetterboxView(View view, int windowWidth, int windowHeight);
 
 void game(RenderWindow& window, View& view); // True game function
 void keyBindings(Event& event, player_object& player, vector <laser_object>& missiles, Time& deltaTime, Clock& time_between_fire);
-bool checkCollision(Vertex_Object* obj1, Vertex_Object* obj2);
 
-int main() 
+int main()
 {
 
 	auto resX = 460;
@@ -45,6 +45,7 @@ int main()
 
 void game(RenderWindow& window, View& view)
 {
+	physics gamePhysics;
 	//Developer Options
 	bool fps_bool = true;
 	bool debugMode = false;
@@ -68,7 +69,7 @@ void game(RenderWindow& window, View& view)
 	//
 
 	//enemies
-	vector <enemy_object *> enemies;
+	vector <enemy_object*> enemies;
 
 	for (size_t i = 0; i < 15; i++)
 	{
@@ -129,7 +130,7 @@ void game(RenderWindow& window, View& view)
 		keyBindings(event, player, allied_missiles, deltaTime, Time_between_fire);
 
 		////Colliding
-		
+
 		//Coliding ememy - allied missilies
 		for (int i = 0; i < enemies.size(); i++)
 		{
@@ -137,7 +138,7 @@ void game(RenderWindow& window, View& view)
 			for (int j = 0; j < allied_missiles.size(); j++)
 			{
 				Vertex_Object* obj2 = &allied_missiles[j];
-				if (checkCollision(obj1, obj2))
+				if (gamePhysics.checkCollision(obj1, obj2))
 				{
 					swap(allied_missiles[j], allied_missiles[allied_missiles.size() - 1]);
 					allied_missiles.pop_back();
@@ -149,7 +150,7 @@ void game(RenderWindow& window, View& view)
 						enemies.pop_back();
 					}
 
-					
+
 				}
 
 			}
@@ -160,7 +161,7 @@ void game(RenderWindow& window, View& view)
 		for (int i = 0; i < enemy_missiles.size(); i++)
 		{
 			Vertex_Object* obj2 = &enemy_missiles[i];
-			if (checkCollision(&player, obj2))
+			if (gamePhysics.checkCollision(&player, obj2))
 			{
 				swap(enemy_missiles[i], enemy_missiles[enemy_missiles.size() - 1]);
 				enemy_missiles.pop_back();
@@ -180,7 +181,7 @@ void game(RenderWindow& window, View& view)
 		for (int i = 0; i < enemies.size(); i++)
 		{
 			Vertex_Object* obj2 = enemies[i];
-			if (checkCollision(&player, obj2))
+			if (gamePhysics.checkCollision(&player, obj2))
 			{
 				swap(enemies[i], enemies[enemies.size() - 1]);
 				enemies.pop_back();
@@ -233,7 +234,7 @@ void game(RenderWindow& window, View& view)
 		//
 
 		//Is the player outside the window 
-		if(player.getPosition().x > view.getSize().x + player.getLeft_down_corner().x)
+		if (player.getPosition().x > view.getSize().x + player.getLeft_down_corner().x)
 		{
 			player.setPosition(Vector2f(0 - player.getLeft_down_corner().x, player.getPosition().y));
 		}
@@ -252,10 +253,10 @@ void game(RenderWindow& window, View& view)
 		}
 
 		//Moving objects and AI
-		
+
 		for (int i = 0; i < enemies.size(); i++)
 		{
-			enemies[i]->AI(deltaTime, enemy_missiles);
+			enemies[i]->AI(deltaTime, enemy_missiles, player.getCenter());
 		}
 
 		//player
@@ -269,13 +270,13 @@ void game(RenderWindow& window, View& view)
 		for (int i = 0; i < enemy_missiles.size(); i++)
 			enemy_missiles[i].move(deltaTime);
 		//
-		
+
 
 		//
-		
+
 
 		//fps metter
-		
+
 		Text fps("PH", openSans);
 		if (fps_bool)
 		{
@@ -319,14 +320,14 @@ void game(RenderWindow& window, View& view)
 		for (int i = 0; i < enemy_missiles.size(); i++)	//Drawing enemy_misi
 			enemy_missiles[i].draw(window);
 
-		
+
 		//Drawing debug objects (like colisions, or checking circles)
 
 		if (debugMode)
 		{
 			window.draw(fps);
 			player.drawDebug(window);
-			
+
 			for (int i = 0; i < enemies.size(); i++) //Drawig enemy; Type -  enemies
 				enemies[i]->drawDebug(window);
 
@@ -418,84 +419,3 @@ View getLetterboxView(View view, int windowWidth, int windowHeight) {
 
 	return view;
 }
-
-//collision || Transfer to class Phisics
-float cross_product(Vector2f X, Vector2f Y, Vector2f Z);
-bool isBelongToStraight(Vector2f X, Vector2f Y, Vector2f Z);
-bool areCrossing(Vector2f A, Vector2f B, Vector2f C, Vector2f D);
-
-bool checkCollision(Vertex_Object* obj1, Vertex_Object* obj2)
-{
-	float distance = sqrt(pow(obj2->getCenter().x - obj1->getCenter().x, 2) + pow(obj2->getCenter().y - obj1->getCenter().y, 2)); // distance between two centers of objects
-
-	if (obj1->getRadious() + obj2->getRadious() < distance ) // Circles of Collision activator don't cross
-	{
-		return false;
-	}
-	else
-	{
-		VertexArray obj1Array;
-		for (int i = 0; i < obj1->getCollision().getVertexCount(); i++)
-		{
-			obj1Array.append(obj1->getCollision()[i]);
-		}
-		VertexArray obj2Array;
-		for (int i = 0; i < obj2->getCollision().getVertexCount(); i++)
-		{
-			obj2Array.append(obj2->getCollision()[i]);
-		}
-
-		for (int i = 0; i < obj1Array.getVertexCount(); i++)
-		{
-
-			for (int j = 0; j < obj2Array.getVertexCount(); j++)
-			{
-				int k, l;
-
-				if ((i + 1) == obj1Array.getVertexCount())
-					k = 0;
-				else
-					k = i + 1;
-
-				if ((j + 1) == obj2Array.getVertexCount())
-					l = 0;
-				else
-					l = j + 1;
-
-				if (areCrossing(obj1Array[i].position, obj1Array[k].position, obj2Array[j].position, obj2Array[l].position))
-					return true;
-
-			}
-		}
-		return false;
-	}
-
-}
-
-float cross_product(Vector2f X, Vector2f Y, Vector2f Z)
-{
-	float x1 = Z.x - X.x, y1 = Z.y - X.y;
-	float x2 = Y.x - X.x, y2 = Y.y - X.y;
-	return x1 * y2 - x2 * y1;
-}
-bool isBelongToStraight(Vector2f X, Vector2f Y, Vector2f Z)
-{
-	return min(X.x, Y.x) <= Z.x && Z.x <= max(X.x, Y.x)
-		&& min(X.y, Y.y) <= Z.y && Z.y <= max(X.y, Y.y);
-}
-bool areCrossing(Vector2f A, Vector2f B, Vector2f C, Vector2f D)
-{
-	int v1 = cross_product(C, D, A),
-		v2 = cross_product(C, D, B),
-		v3 = cross_product(A, B, C),
-		v4 = cross_product(A, B, D);
-	if ((v1 > 0 && v2 < 0 || v1 < 0 && v2>0) && (v3 > 0 && v4 < 0 || v3 < 0 && v4>0)) return 1;
-
-	if (v1 == 0 && isBelongToStraight(C, D, A)) return 1;
-	if (v2 == 0 && isBelongToStraight(C, D, B)) return 1;
-	if (v3 == 0 && isBelongToStraight(A, B, C)) return 1;
-	if (v4 == 0 && isBelongToStraight(A, B, D)) return 1;
-
-	return 0;
-}
-
