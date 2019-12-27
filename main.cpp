@@ -58,7 +58,7 @@ void game(RenderWindow& window, View& view)
 
 	//Player
 	player_object player(10, 10, 30, 10, 60);
-	player.setScale(10);
+	player.setScale(3);
 	player.setPosition(Vector2f(200, view.getSize().y - player.getLeft_down_corner().y - 30));
 	//
 
@@ -71,7 +71,25 @@ void game(RenderWindow& window, View& view)
 	//enemies
 	vector <enemy_object*> enemies;
 
-	for (size_t i = 0; i < 15; i++)
+	for (size_t i = 0; i < 5; i++)
+	{
+		enemies.push_back(new fighter_enemy());
+		Vector2f position;
+		position.x = 45 + 80 * (i % 5);
+		position.y = 30 + 80 * ceil(i / 5);
+		enemies[i]->setPosition(position);
+		enemies[i]->setScale(5);
+	}
+	for (size_t i = 5; i < 10; i++)
+	{
+		enemies.push_back(new special_fighter_enemy());
+		Vector2f position;
+		position.x = 45 + 80 * (i % 5);
+		position.y = 30 + 80 * ceil(i / 5);
+		enemies[i]->setPosition(position);
+		enemies[i]->setScale(5);
+	}
+	for (size_t i = 10; i < 15; i++)
 	{
 		enemies.push_back(new fighter_enemy());
 		Vector2f position;

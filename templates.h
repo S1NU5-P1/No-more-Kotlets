@@ -9,24 +9,117 @@ using namespace sf;
 
 vector <Vector2f> player_Template
 {
-	Vector2f(0, 6), //0
-	Vector2f(3, 0), //1
-	Vector2f(6, 6), //2
-	Vector2f(3, 5), //3
-	Vector2f(0, 6)  //0
+	Vector2f(14, 0), 
+	Vector2f(15, 0),
+	Vector2f(16, 2),
+	Vector2f(17, 12),
+	Vector2f(17, 24),
+
+	Vector2f(17, 23),
+	Vector2f(18, 24),
+	Vector2f(20, 24),
+	Vector2f(21, 23),
+	Vector2f(21, 17),
+	Vector2f(21, 22),
+	Vector2f(27, 24),
+	Vector2f(27, 19),
+	Vector2f(27, 24),
+	Vector2f(28, 25),
+	Vector2f(29, 24),
+	Vector2f(29, 19),
+	Vector2f(28, 18),
+	Vector2f(28, 14),
+	Vector2f(28, 18),
+	Vector2f(27, 19),
+	Vector2f(21, 17),
+	Vector2f(21, 16),
+	Vector2f(20, 15),
+	Vector2f(18, 15),
+	Vector2f(17, 16),
+
+	Vector2f(16, 16),
+	Vector2f(16, 18),
+	Vector2f(15, 19),
+	Vector2f(14, 19),
+	Vector2f(13, 18),
+	Vector2f(13, 16),
+	Vector2f(12, 16),
+	Vector2f(13, 16),
+	Vector2f(14, 10),
+	Vector2f(15, 10),
+	Vector2f(16, 16),
+
+	Vector2f(17, 16),
+	Vector2f(17, 24),
+	Vector2f(16, 25),
+	Vector2f(13, 25),
+	Vector2f(12, 24),
+	Vector2f(12, 12),
+
+	Vector2f(12, 23),
+	Vector2f(11, 24),
+	Vector2f(9, 24),
+	Vector2f(8, 23),
+	Vector2f(8, 17),
+	Vector2f(8, 22),
+	Vector2f(2, 24),
+	Vector2f(2, 19),
+	Vector2f(2, 24),
+	Vector2f(1, 25),
+	Vector2f(0, 24),
+	Vector2f(0, 19),
+	Vector2f(1, 18),
+	Vector2f(1, 14),
+	Vector2f(1, 18),
+	Vector2f(2, 19),
+	Vector2f(8, 17),
+	Vector2f(8, 16),
+	Vector2f(9, 15),
+	Vector2f(11, 15),
+	Vector2f(12, 16),
+	
+	Vector2f(12, 12),
+	Vector2f(13, 2),
+
+	Vector2f(14, 0)
 };
 
 vector <Vector2f> player_Collision_Template
 {
-	Vector2f(0,6), //0
-	Vector2f(3,0), //1
-	Vector2f(6,6)  //2
+	Vector2f(14, 0),
+	Vector2f(15, 0),
+	Vector2f(16, 2),
+	Vector2f(17, 12),
+	Vector2f(20, 15),
+	Vector2f(21, 16),
+	Vector2f(21, 17),
+	Vector2f(27, 19),
+	Vector2f(29, 19),
+	Vector2f(29, 24),
+	Vector2f(27, 24),
+	Vector2f(21, 22),
+	Vector2f(21, 23),
+	Vector2f(20, 24),
+	Vector2f(16, 25),
+	Vector2f(13, 25),
+	Vector2f(9, 24),
+	Vector2f(8, 23),
+	Vector2f(8, 22),
+	Vector2f(2, 24),
+	Vector2f(0, 24),
+	Vector2f(0, 19),
+	Vector2f(2, 19),
+	Vector2f(8, 17),
+	Vector2f(8, 16),
+	Vector2f(9, 15),
+	Vector2f(12, 12),
+	Vector2f(13, 2)
 };
 
 vector <Vector2f> player_fire_points
 {
-	Vector2f(0,6), //0
-	Vector2f(6,6)  //1
+	Vector2f(1,14), //0
+	Vector2f(28,14)  //1
 };
 
 vector <Vector2f> fighter_template

@@ -12,8 +12,9 @@ using namespace sf;
 
 void Vertex_Object::findCenter()
 {
-	float x_max = collision_template[0].x;
-	float y_max = collision_template[0].y;
+	cout << collision_template.size() << endl;
+	float x_max = collision_template.front().x;
+	float y_max = collision_template.front().y;
 
 	for (int i = 1; i < collision_template.size(); i++)
 	{
@@ -375,11 +376,22 @@ vector<Vector2f> laser_object::makeTemplate(float length)
 	return temp;
 }
 
+vector<Vector2f> laser_object::makeTemplate(float length, Vector2f length_factor)
+{
+	vector<Vector2f> temp;
+
+	temp.push_back(Vector2f(0, 0));
+	temp.push_back(Vector2f(length * length_factor.x, length * length_factor.y));
+	temp.push_back(Vector2f(length * length_factor.x + 1, length * length_factor.y));
+	temp.push_back(Vector2f(1, 0));
+	return temp;
+}
+
 laser_object::laser_object()
 	:Vertex_Object(makeTemplate(10), makeTemplate(10), Color::Green)
 {
 	damage = 10;
-	speed = 50;
+	speed =  Vector2f(50,50);
 	direction = 1;
 
 }
@@ -388,16 +400,23 @@ laser_object::laser_object(int dm, float length, Color color, float v, int dir)
 	:Vertex_Object(makeTemplate(length), makeTemplate(length), color)
 {
 	damage = dm;
-	speed = v;
+	speed = Vector2f(0, v);
 	direction = dir;
-	//cout << object[0].position.x << " , " << object[0].position.y << " || " << object[1].position.x << " , " << object[1].position.y << endl;
+}
+
+laser_object::laser_object(int dm, float length, Color color, float v, Vector2f speed_factor)
+	:Vertex_Object(makeTemplate(length, speed_factor), makeTemplate(length, speed_factor), color)
+{
+	damage = dm;
+	speed = Vector2f(v * speed_factor.x, v * speed_factor.y);
+	direction = 1;
 }
 
 void laser_object::move(Time deltaTime)
 {
 	Vector2f temp;
-	temp.y = speed * direction * deltaTime.asMilliseconds() / 100;
-	temp.x = 0;
+	temp.y = speed.y * direction * deltaTime.asMilliseconds() / 100;
+	temp.x = speed.x * direction * deltaTime.asMilliseconds() / 100;
 	Vertex_Object::move(temp);
 
 }
@@ -592,11 +611,18 @@ void enemy_object::aimed_shoot(Time deltaTime, vector<laser_object>& enemy_missi
 {
 	if ((rand() % x) + 1 == 1 && deltaTime.asMilliseconds() != 0 && shoot_time > 500)
 	{
-		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, 1));
+		Vector2f delta_position;
+		delta_position.x = player_position.x - position.x;
+		delta_position.y = player_position.y - position.y;
+
+		float denominator = sqrtf(pow(delta_position.x, 2) + pow(delta_position.y, 2));
+		Vector2f speed_factor;
+		speed_factor.x = delta_position.x / denominator;
+		speed_factor.y = delta_position.y / denominator;
+		enemy_missiles.push_back(laser_object(10, 35, Color::Green, 50, speed_factor));
 		Vector2f temp_fire_point = getFirePoint();
 		enemy_missiles[enemy_missiles.size() - 1].setPosition(Vector2f(temp_fire_point.x, temp_fire_point.y));
 		shoot_time = 0;
-
 	}
 }
 
@@ -607,7 +633,7 @@ void enemy_object::back2color()
 }
 
 fighter_enemy::fighter_enemy()
-	:enemy_object(fighter_template, fighter_Collision_template, Color(180,150,150,255), 20, 10, Vector2f(10,0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
+	:enemy_object(fighter_template, fighter_Collision_template, Color(180, 150, 150, 255), 20, 10, Vector2f(10,0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
 {
 	fire_points_template = fighter_fire_points;
 	fire_points = fighter_fire_points;
@@ -622,7 +648,7 @@ void fighter_enemy::AI(Time deltaTime, vector<laser_object> &enemy_missiles, Vec
 }
 
 special_fighter_enemy::special_fighter_enemy()
-	:enemy_object(fighter_template, fighter_Collision_template, Color(180, 150, 150, 255), 20, 10, Vector2f(10, 0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
+	:enemy_object(fighter_template, fighter_Collision_template, Color::Blue, 20, 10, Vector2f(10, 0.02), Vector2f(10, 0.02), Vector2f(20, 0.2))
 {
 	fire_points_template = fighter_fire_points;
 	fire_points = fighter_fire_points;

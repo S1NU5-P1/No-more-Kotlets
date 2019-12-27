@@ -1,7 +1,5 @@
 #include <SFML\Graphics.hpp>
 
-
-
 #ifndef Vertex_Object_h
 #define Vertex_Object_h
 
@@ -99,16 +97,18 @@ public:
 class laser_object
 	:public Vertex_Object
 {
-	float speed;
+	Vector2f speed;
 	int damage;
 	int direction;
 
 	vector <Vector2f> makeTemplate(float length);
+	vector <Vector2f> makeTemplate(float length, Vector2f k_length);
 
 public:
 
 	laser_object();
-	laser_object(int damage, float length, Color color, float v, int dir);
+	laser_object(int dm, float length, Color color, float v, int dir);
+	laser_object(int dm, float length, Color color, float v, Vector2f speed_factor);
 
 	void move(Time deltaTime);
 	Vector2f getPosition();
