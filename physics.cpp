@@ -1,10 +1,14 @@
 #include <SFML\Graphics.hpp>
 #include <math.h>
-#include "Vertex_Object.h"
 #include "physics.h"
+#include "Vertex_Object.h"
 
 using namespace std;
 using namespace sf;
+
+physics::physics()
+{
+}
 
 bool physics::checkCollision(Vertex_Object* obj1, Vertex_Object* obj2)
 {

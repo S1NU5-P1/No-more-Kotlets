@@ -1,9 +1,12 @@
+#pragma once
 #include <SFML\Graphics.hpp>
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <set>
 #include "stellar_background.h"
 #include "Vertex_Object.h"
+#include "level_loader.h"
 #include "physics.h"
 
 
@@ -12,21 +15,24 @@ using namespace sf;
 
 View getLetterboxView(View view, int windowWidth, int windowHeight);
 
-void game(RenderWindow& window, View& view); // True game function
+int game(RenderWindow& window, View& view); // True game function
 void keyBindings(Event& event, player_object& player, vector <laser_object>& missiles, Time& deltaTime, Clock& time_between_fire);
 
 int main()
 {
+	cout << "Debug console, please don't close it! / Konsola z bledami, prosze nie wylaczaj jej!" << endl;
 
-	auto resX = 460;
-	auto resY = 720;
+	int resX = 460;
+	int resY = 720;
+	float res_multipler = 1;
+	
 
 	bool frame_lock = true;
 
 	srand(time(NULL));
 
 	//Window Inicialisation
-	RenderWindow window(VideoMode(resX, resY), "NO MORE KOTLETS?");
+	RenderWindow window(VideoMode(resX * res_multipler, resY * res_multipler), "NO MORE KOTLETS?");
 	window.setActive();
 	if (frame_lock)
 		window.setFramerateLimit(240);
@@ -43,12 +49,25 @@ int main()
 
 }
 
-void game(RenderWindow& window, View& view)
+int game(RenderWindow& window, View& view)
 {
 	physics gamePhysics;
+	bool error_handle = false;
+
+	//Test
+	level_loader levels("data/levels/~level-container.lvl", error_handle);
+	levels.load_level(0, error_handle);
+	//levels.showLoadedData();
+	//
+
 	//Developer Options
 	bool fps_bool = true;
 	bool debugMode = false;
+	//
+
+	//Fonts
+	Font openSans;
+	if (!openSans.loadFromFile("data/fonts/OpenSans-Light.ttf")) cout << "File 'OpenSans-Light.ttf' not found." << endl;
 	//
 
 	Clock deltaClock;
@@ -71,7 +90,7 @@ void game(RenderWindow& window, View& view)
 	//enemies
 	vector <enemy_object*> enemies;
 
-	for (size_t i = 0; i < 5; i++)
+	/*for (size_t i = 0; i < 5; i++)
 	{
 		enemies.push_back(new fighter_enemy());
 		Vector2f position;
@@ -97,7 +116,7 @@ void game(RenderWindow& window, View& view)
 		position.y = 30 + 80 * ceil(i / 5);
 		enemies[i]->setPosition(position);
 		enemies[i]->setScale(5);
-	}
+	}*/
 	//
 
 	//Debug
@@ -105,10 +124,7 @@ void game(RenderWindow& window, View& view)
 	//
 	///
 
-	//Fonts
-	Font openSans;
-	openSans.loadFromFile("OpenSans-Light.ttf");
-	//
+	
 
 	while (window.isOpen())
 	{
@@ -143,9 +159,18 @@ void game(RenderWindow& window, View& view)
 			}
 
 		}
+
+		if (error_handle)
+		{
+			cout << "Fatal Error. Ending.../ Blad krytyczny. Konczenie..." << endl;
+			window.close();
+			return 20023;
+		}
 		//
 
 		keyBindings(event, player, allied_missiles, deltaTime, Time_between_fire);
+
+		levels.checkLevelEvent(deltaTime, enemies);
 
 		////Colliding
 
@@ -274,7 +299,7 @@ void game(RenderWindow& window, View& view)
 
 		for (int i = 0; i < enemies.size(); i++)
 		{
-			enemies[i]->AI(deltaTime, enemy_missiles, player.getCenter());
+			enemies[i]->AI(deltaTime, enemy_missiles, player.getCenter(), enemies.size());
 		}
 
 		//player
@@ -356,6 +381,7 @@ void game(RenderWindow& window, View& view)
 		window.display();
 
 	}
+	return 1;
 }
 
 void keyBindings(Event& event, player_object& player, vector <laser_object>& missiles, Time& deltaTime, Clock& time_between_fire)

@@ -1,0 +1,2 @@
+0 - fighter
+1 - special fighter

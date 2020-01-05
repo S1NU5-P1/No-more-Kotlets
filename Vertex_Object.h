@@ -139,6 +139,9 @@ protected:
 
 	Vector2f deltaPosition;
 	Vector2f direction = Vector2f(1,1);
+
+	bool randomShoot(int x, int enemy_count);
+	void shoot(vector<laser_object>& enemy_missiles, Vector2f direction);
 	
 public:
 	int health;
@@ -163,12 +166,13 @@ public:
 
 	void simpleMovement(Time deltaTime);
 
-	void shoot(Time deltaTime, vector <laser_object> &enemy_missiles, int x); //x is a denominator of probability (1/x); 
-	void aimed_shoot(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position, int x);
+	
+	void simple_shoot(Time deltaTime, vector <laser_object>& enemy_missiles, int x, int enemy_count);//x is a denominator of probability (1/x); 
+	void aimed_shoot(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position, int x, int enemy_count);
 
 	void back2color();
 
-	virtual void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position) = 0;
+	virtual void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position, int enemy_count) = 0;
 
 };
 
@@ -179,7 +183,7 @@ class fighter_enemy
 public:
 	fighter_enemy();
 
-	void AI(Time deltaTime, vector <laser_object> &enemy_missiles, Vector2f player_position);
+	void AI(Time deltaTime, vector <laser_object> &enemy_missiles, Vector2f player_position, int enemy_count);
 };
 
 class special_fighter_enemy
@@ -189,7 +193,7 @@ class special_fighter_enemy
 public:
 	special_fighter_enemy();
 
-	void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position);
+	void AI(Time deltaTime, vector <laser_object>& enemy_missiles, Vector2f player_position, int enemy_count);
 };
 
 #endif

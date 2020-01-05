@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="level_loader.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="physics.h" />
     <ClCompile Include="main.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="Vertex_Object.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="level_loader.h" />
     <ClInclude Include="stellar_background.h" />
     <ClInclude Include="templates.h" />
     <ClInclude Include="Vertex_Object.h" />
